@@ -13,23 +13,11 @@ import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.aykuttasil.percentbar.models.BarImageModel;
-import com.aykuttasil.percentbar.util.PicassoCircleTransform;
-import com.aykuttasil.percentbar.util.adapter.MaterialListAdapter;
-import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.functions.Func1;
 
 /**
  * Created by aykutasil on 18.09.2016.
@@ -134,9 +122,6 @@ public class PercentBarView extends View {
         this.alphaViewValue = val;
     }
 
-    public void setImages(List<BarImageModel> list) {
-        this.mListImages = list;
-    }
 
     public void setShowImagesCount(int count) {
         this.IMAGES_COUNT = count;
@@ -278,63 +263,9 @@ public class PercentBarView extends View {
             percentText.getTextBounds(barText, 0, barText.length(), barTextRect);
 
             canvas.drawText(barText, textStart, textEnd, percentText);
-
-            if (mListImages != null && mListImages.size() > 0) {
-                drawImagesLeft();
-            }
         }
     }
 
-    private void drawImagesLeft() {
-
-        final RelativeLayout relativeLayout = (RelativeLayout) getParent();
-
-        Observable.from(mListImages)
-                .filter(new Func1<BarImageModel, Boolean>() {
-                    @Override
-                    public Boolean call(BarImageModel barImageModel) {
-                        return barImageModel.getValue() == BarField.LEFT;
-                    }
-                })
-                .take(IMAGES_COUNT)
-                .toList()
-                .filter(new Func1<List<BarImageModel>, Boolean>() {
-                    @Override
-                    public Boolean call(List<BarImageModel> barImageModels) {
-                        return barImageModels.size() > 0;
-                    }
-                })
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<BarImageModel>>() {
-                    @Override
-                    public void call(List<BarImageModel> barImageModels) {
-                        int index = 0;
-                        for (BarImageModel listItem : barImageModels) {
-
-                            ImageView imageView1 = new ImageView(mContext);
-
-                            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_START);
-                            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                            layoutParams.leftMargin = 30 - (index % 2 == 0 ? 10 : -10);
-                            layoutParams.bottomMargin = index * 50;
-                            imageView1.setLayoutParams(layoutParams);
-                            relativeLayout.addView(imageView1);
-
-                            Picasso.with(mContext)
-                                    .load(listItem.getImageUrl())
-                                    .transform(new PicassoCircleTransform())
-                                    .resize(100, 100)
-                                    .centerCrop()
-                                    .into(imageView1);
-
-                            index++;
-                        }
-                        drawAnotherIcon(index, BarField.LEFT);
-                    }
-                });
-    }
 
     private void drawBarRight(Canvas canvas) {
 
@@ -372,121 +303,9 @@ public class PercentBarView extends View {
 
             canvas.drawText(barText, textStart, textEnd, percentText);
 
-            if (mListImages != null && mListImages.size() > 0) {
-                drawImagesRight();
-            }
         }
     }
 
-    private void drawImagesRight() {
-
-        final RelativeLayout relativeLayout = (RelativeLayout) getParent();
-
-        Observable.from(mListImages)
-                .filter(new Func1<BarImageModel, Boolean>() {
-                    @Override
-                    public Boolean call(BarImageModel barImageModel) {
-                        return barImageModel.getValue() == BarField.RIGHT;
-                    }
-                })
-                .take(IMAGES_COUNT)
-                .toList()
-                .filter(new Func1<List<BarImageModel>, Boolean>() {
-                    @Override
-                    public Boolean call(List<BarImageModel> barImageModels) {
-                        return barImageModels.size() > 0;
-                    }
-                })
-                .subscribeOn(AndroidSchedulers.mainThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<List<BarImageModel>>() {
-                    @Override
-                    public void call(List<BarImageModel> barImageModels) {
-                        int index = 0;
-                        for (BarImageModel listItem : barImageModels) {
-
-                            ImageView imageView1 = new ImageView(mContext);
-
-                            RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_END);
-                            layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-                            layoutParams.rightMargin = 30 - (index % 2 == 0 ? 10 : -10);
-                            layoutParams.bottomMargin = index * 50;
-                            imageView1.setLayoutParams(layoutParams);
-                            relativeLayout.addView(imageView1);
-
-                            Picasso.with(mContext)
-                                    .load(listItem.getImageUrl())
-                                    .transform(new PicassoCircleTransform())
-                                    .resize(100, 100)
-                                    .centerCrop()
-                                    .into(imageView1);
-
-                            index++;
-                        }
-                        drawAnotherIcon(index, BarField.RIGHT);
-                    }
-                });
-    }
-
-    private void drawAnotherIcon(int index, final BarField barField) {
-        RelativeLayout relativeLayout = (RelativeLayout) getParent();
-        ImageView imageView = new ImageView(mContext);
-
-        imageView.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                final List<BarImageModel> listItem = new ArrayList<>();
-
-                rx.Observable.from(mListImages)
-                        .filter(new Func1<BarImageModel, Boolean>() {
-                            @Override
-                            public Boolean call(BarImageModel barImageModel) {
-                                return barImageModel.getValue() == barField;
-                            }
-                        })
-                        .subscribe(new Action1<BarImageModel>() {
-                            @Override
-                            public void call(BarImageModel barImageModel) {
-                                listItem.add(barImageModel);
-                            }
-                        })
-                        .unsubscribe();
-
-
-                MaterialListAdapter adapter = new MaterialListAdapter(mContext, listItem);
-
-                MaterialDialog dialog = new MaterialDialog.Builder(mContext)
-                        .title(TitleList)
-                        .adapter(adapter, new MaterialDialog.ListCallback() {
-                            @Override
-                            public void onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
-
-                            }
-                        }).build();
-
-                dialog.show();
-            }
-        });
-
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        layoutParams.addRule(barField == BarField.RIGHT ? RelativeLayout.ALIGN_PARENT_END : RelativeLayout.ALIGN_PARENT_START);
-        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-        layoutParams.rightMargin = barField == BarField.LEFT ? 30 : 0;
-        layoutParams.leftMargin = barField == BarField.RIGHT ? 30 : 0;
-        layoutParams.bottomMargin = index * 50;
-
-        imageView.setLayoutParams(layoutParams);
-
-        relativeLayout.addView(imageView);
-
-        Picasso.with(mContext)
-                .load(R.drawable.ic_add_circle_indigo_300_48dp)
-                .placeholder(R.drawable.ic_add_circle_indigo_300_48dp)
-                .resize(100, 100)
-                .into(imageView);
-    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
